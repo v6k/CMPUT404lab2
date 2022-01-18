@@ -23,7 +23,7 @@ def main():
             conn, addr = s.accept()
             print("Connected by", addr)
             
-            #recieve data, wait a bit, then send it back
+            #receive data, wait a bit, then send it back
             full_data = conn.recv(BUFFER_SIZE)
             time.sleep(0.5)
             conn.sendall(full_data)

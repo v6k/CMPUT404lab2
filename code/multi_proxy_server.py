@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import socket, time, sys
+from multiprocessing import Process
 
 HOST = ""
 PORT = 8001
@@ -39,21 +40,28 @@ def main():
 
                 #connect proxy_end
                 proxy_end.connect((remote_ip,port))
-
-                #send data
-                send_full_data = conn.recv(BUFFER_SIZE)
-                print(f"Sending received data {send_full_data} to google")
-                proxy_end.sendall(send_full_data)
-
-                #shut down
-                proxy_end.shutdown(socket.SHUT_WR)
-
-                data = proxy_end.recv(BUFFER_SIZE)
-                print(f"Sending received data {data} to client")
-                #send data back
-                conn.send(data)
+                p = Process(target=handle_server, args=(proxy_end,conn))
+                p.daemon = True
+                p.start()
+                print("Started process ", p)
+                
+                
                 
             conn.close()
+
+def handle_server(proxy_end,conn):
+    #send data
+    send_full_data = conn.recv(BUFFER_SIZE)
+    print(f"Sending received data {send_full_data} to google")
+    proxy_end.sendall(send_full_data)
+
+    #shut down
+    proxy_end.shutdown(socket.SHUT_WR)
+
+    data = proxy_end.recv(BUFFER_SIZE)
+    print(f"Sending received data {data} to client")
+    #send data back
+    conn.send(data)
 
 if __name__ == "__main__":
     main()
